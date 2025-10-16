@@ -27,50 +27,29 @@ class WorldElement:
         if self.collapsed == 1:
             return
         self.collapsed = 1
-        #self.elements = [self.elements[random.randrange(0, len(self.elements))]]
-        self.elements = [self.elements[4]]
-
-        print(self.pos)
-        print()
-
-        if self.neighbours[0] != None:
-            print (self.neighbours[0].pos)
-            # for east in self.elements[0].nb_north:
-            #     for element in self.neighbours[0].elements:
-            #         if element.id not in self.elements[0].nb_north:
-            #             self.neighbours[0].elements.remove(element)
-        if self.neighbours[1] != None:
-            print (self.neighbours[1].pos)
-            # for east in self.elements[0].nb_east:
-            #     for element in self.neighbours[1].elements:
-            #         if element.id not in self.elements[0].nb_east:
-            #             self.neighbours[1].elements.remove(element)
-        if self.neighbours[2] != None:
-            print (self.neighbours[2].pos)
-            # for east in self.elements[0].nb_south:
-            #     for element in self.neighbours[2].elements:
-            #         if element.id not in self.elements[0].nb_east:
-            #             self.neighbours[2].elements.remove(element)
-        if self.neighbours[3] != None:
-            print (self.neighbours[3].pos)
-            # for east in self.elements[0].nb_west:
-            #     for element in self.neighbours[3].elements:
-            #         if element.id not in self.elements[0].nb_east:
-            #             self.neighbours[3].elements.remove(element)
+        self.elements = [self.elements[random.randrange(0, len(self.elements))]]
+        #self.elements = [self.elements[4]]
         
+        #print(self.elements[0].neighbours[0])
+        for i in range(4):
+            temp = []
+            if self.neighbours[i] != None:
+                for element in self.neighbours[i].elements:
+                    if element.id in self.elements[0].neighbours[i]:
+                        temp.append(element)
+                self.neighbours[i].elements = temp
+                self.neighbours[i].update()
 
     def update(self):
-        pass
+        self.entropy = len(self.elements)
+        
 
 class WorldSprite:
 
-    def __init__(self,id, image, nb_north, nb_east, nb_south, nb_west):
+    def __init__(self,id, image, neighbours):
         self.id = id
         self.image = pygame.image.load(image)
-        self.nb_north = nb_north
-        self.nb_east = nb_east
-        self.nb_south = nb_south
-        self.nb_west = nb_west
+        self.neighbours = neighbours
 
     def draw(self, screen, count, i, pos):
         w = math.ceil(math.sqrt(count))
