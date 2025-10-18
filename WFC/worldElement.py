@@ -31,8 +31,6 @@ class WorldElement:
         self.collapsed = True
         self.elements = [self.elements[random.randrange(0, len(self.elements))]]
         self.entropy = 9999
-        print(self.pos)
-
         for i in range(4):
             temp = []
             if self.neighbours[i] != None:
@@ -46,7 +44,6 @@ class WorldElement:
                         temp.append(None)
                     self.neighbours[i].elements = temp
                     self.neighbours[i].update()
-
 
     def update(self):
         if self.collapsed == False:
