@@ -1,7 +1,8 @@
 import pygame
 from operator import attrgetter
-from worldElement import WorldElement as WE
-from worldElement import WorldSprite as WS
+from wavefunctioncollapse import WaveFunctionCollapse as WFC
+from worldelement import WorldElement as WE
+from worldsprite import WorldSprite as WS
 
 WORLD_SIZE = 10
 ELEMENTS = [
@@ -17,7 +18,7 @@ ELEMENTS = [
             WS(9,'img/tile_0009.png', [[2,3,9],[0,5,7,13],[9,10,15],[4,6,7,8,11]]),
             WS(10,'img/tile_0010.png', [[2,3,9],[1,2,11],[6,8,12,14],[6,8,9,11,12]]),
             WS(11,'img/tile_0011.png', [[0,4,7],[3,6,8,10,12],[3,4,6,8,12,14],[1,10]]),
-            WS(12,'img/tile_0012.png', [[6,8,10,11,12],[6,8,9,10,12],[4,6,8,12,14],[6,7,8,12]]),
+            WS(12,'img/tile_0012.png', [[6,8,10,11,12],[6,8,9,10,12],[3,4,6,8,12,14],[6,7,8,12]]),
             WS(13,'img/tile_0013.png', [[0,4,7],[4,14,15],[0,1,2,4,5],[2,5,7,9,15]]),
             WS(14,'img/tile_0014.png', [[1,6,8,10,11,12],[4,14,15],[0,1,2,5],[3,13,14]]),
             WS(15,'img/tile_0015.png', [[2,3,9],[0,5,7,13],[0,1,2,5],[3,13,14]])
