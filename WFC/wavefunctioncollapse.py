@@ -26,16 +26,57 @@ ELEMENTS = [
 
 class WaveFunctionCollapse:
 
-    def __init__(self):
-        self.world_size = 10
+    def __init__(self, size, screen):
+        self.world_size = size
         self.world_elements = []
         self.auto_collapse_active = False
         self.last_time = -1
         self.auto_collapse_wait = 50
-        self.screen
+        self.screen = screen
 
-        worldElements = []
+        self.setup_world_elements()
+        self.set_world_element_neighbours()
+
+    def set_collapse(self):
+        self.auto_collapse_active =  bool(1 - int(self.auto_collapse_active))
+
+    def setup_world_elements(self):
+        print("setup!")
         for y in range(self.world_size):
             for x in range(self.world_size):
-                we = WE(self.screen, ELEMENTS.copy(), x, y)
-                worldElements.append(we)
+                we = WE(self.screen, ELEMENTS, x, y)
+                self.world_elements.append(we)
+
+    def set_world_element_neighbours(self):
+        for we in self.world_elements:
+            north = None
+            east = None
+            south = None
+            west = None
+
+            if we.pos[1] - 1 >= 0:
+                north = self.world_elements[we.pos[0] + self.world_size * (we.pos[1]-1)]
+            if we.pos[0] + 1 < self.world_size:
+                east = self.world_elements[we.pos[0] + 1 + self.world_size * we.pos[1]]
+            if we.pos[1] + 1 < self.world_size:
+                south = self.world_elements[we.pos[0] + self.world_size * (we.pos[1]+1)]
+            if we.pos[0] - 1 >= 0:
+                west = self.world_elements[we.pos[0] - 1 + self.world_size * we.pos[1]]
+            we.set_neighbours([north, east, south, west])
+
+    def auto_collapse(self):
+        if self.auto_collapse_active != True:
+            return
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_time >= self.auto_collapse_wait:
+            last_time = current_time
+            next = self.world_elements.index(min(self.world_elements, key=attrgetter('entropy')))
+            self.world_elements[next].collapse()  
+ 
+    def collapse(self, collapse_index):
+        self.last_time= pygame.time.get_ticks()
+        self.world_elements[collapse_index].collapse()  
+
+    def draw(self):
+        for we in self.world_elements:
+            we.draw()
