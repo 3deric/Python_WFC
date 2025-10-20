@@ -6,25 +6,25 @@ from worldelement import WorldElement as WE
 from worldsprite import WorldSprite as WS
 
 
+def _extract_id_from_filename(name):
+    m = re.search(r'(\d+)', name)
+    return int(m.group(1)) if m else None
+
+
 def _load_tiles_from_images(base_dir):
     img_dir = os.path.join(base_dir, 'img')
-    tiles = []
     if not os.path.isdir(img_dir):
-        return tiles
-    image_files = [f for f in os.listdir(img_dir) if f.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))]
-    def extract_id(name):
-        m = re.search(r'(\d+)', name)
-        return int(m.group(1)) if m else None
+        raise Exception(f"Image directory not found: {img_dir}")
+    tiles = []
+    image_files = [f for f in os.listdir(img_dir) if f.lower().endswith(".png")]
     # Prepare list of (id_or_None, fullpath)
-    image_catalogue = [(extract_id(fn), os.path.join(img_dir, fn)) for fn in image_files]
-    next_auto_id = 0
+    image_catalogue = [(_extract_id_from_filename(fn), os.path.join(img_dir, fn)) for fn in image_files]
     for tid, fpath in image_catalogue:
-        if tid is None:
-            tid = next_auto_id
-            next_auto_id += 1
-        tiles.append(WS(tid, fpath))
+        if tid:
+            tiles.append(WS(tid, fpath))
     _build_compatibility(tiles)
     return tiles
+
 
 def _build_compatibility(tiles):
     # Precompute, for each tile, the list of compatible neighbor ids by direction (0:N,1:E,2:S,3:W)
