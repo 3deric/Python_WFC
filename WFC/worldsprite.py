@@ -6,7 +6,7 @@ BORDER = 0.2
 
 class WorldSprite:
 
-    def __init__(self, id, image, edges=None):
+    def __init__(self, id, image):
         self.id = id
         self.image = pygame.image.load(image)
         # Store corner colors (NW, NE, SE, SW) as raw RGB tuples

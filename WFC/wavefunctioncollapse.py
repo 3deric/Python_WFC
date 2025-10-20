@@ -22,7 +22,7 @@ def _load_tiles_from_images(base_dir):
         if tid is None:
             tid = next_auto_id
             next_auto_id += 1
-        tiles.append(WS(tid, fpath, edges=None))
+        tiles.append(WS(tid, fpath))
     _build_compatibility(tiles)
     return tiles
 
