@@ -53,8 +53,6 @@ def _build_compatibility(tiles):
             for d in (0, 1, 2, 3):
                 if corners_match(a, b, d):
                     a.compat[d].append(b.id)
-        # For backward compatibility with older filtering code
-        a.neighbours = [a.compat[0], a.compat[1], a.compat[2], a.compat[3]]
 
 
 class WaveFunctionCollapse:
