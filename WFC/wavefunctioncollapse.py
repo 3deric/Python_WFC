@@ -1,27 +1,58 @@
 import pygame
+import os
+import re
 from operator import attrgetter
 from worldelement import WorldElement as WE
 from worldsprite import WorldSprite as WS
 
 
-ELEMENTS = [
-            WS(0,'img/tile_0000.png', [[5,13,14,15],[1,2,11],[7,11,13],[2,5,9,15]]),
-            WS(1,'img/tile_0001.png', [[5,13.14,15],[1,2,11],[8,12,14],[0,1,10]]),
-            WS(2,'img/tile_0002.png', [[5,14,15],[0,5,7,13],[9,10,15],[0,1,10]]),
-            WS(3,'img/tile_0003.png', [[6,8,12],[4,14,15],[9,10,15],[6,7,12,8]]),
-            WS(4,'img/tile_0004.png', [[6,8,12],[6,8,9,12],[7,11,13],[3,13,14]]),
-            WS(5,'img/tile_0005.png', [[5,13,14,15],[0,5,7,13],[0,1,2,5],[2,5,9,15]]),
-            WS(6,'img/tile_0006.png', [[1,6,8,10,11,12],[3,6,8,10,12],[3,4,6,8,12,14],[6,8,12]]),
-            WS(7,'img/tile_0007.png', [[0,4,7],[3,6,8,9,10,12,13],[7,11,13],[2,5,9,15]]),
-            WS(8,'img/tile_0008.png', [[1,6,8,10,11,12],[6,8,9,10,12],[4,6,8,12,14],[4,6,8,7,11,12]]),
-            WS(9,'img/tile_0009.png', [[2,3,9],[0,5,7,13],[9,10,15],[4,6,7,8,11]]),
-            WS(10,'img/tile_0010.png', [[2,3,9],[1,2,11],[6,8,12,14],[6,8,9,11,12]]),
-            WS(11,'img/tile_0011.png', [[0,4,7],[3,6,8,10,12],[3,4,6,8,12,14],[1,10]]),
-            WS(12,'img/tile_0012.png', [[6,8,10,11,12],[6,8,9,10,12],[3,4,6,8,12,14],[6,7,8,12]]),
-            WS(13,'img/tile_0013.png', [[0,4,7],[4,14,15],[0,1,2,4,5],[2,5,7,9,15]]),
-            WS(14,'img/tile_0014.png', [[1,6,8,10,11,12],[4,14,15],[0,1,2,3,5],[3,13,14]]),
-            WS(15,'img/tile_0015.png', [[2,3,9],[0,5,7,13],[0,1,2,5],[3,13,14]])
-            ]
+def _extract_id_from_filename(name):
+    m = re.search(r'(\d+)', name)
+    return int(m.group(1)) if m else None
+
+
+def _load_tiles_from_images(base_dir):
+    img_dir = os.path.join(base_dir, 'img')
+    if not os.path.isdir(img_dir):
+        raise Exception(f"Image directory not found: {img_dir}")
+    tiles = []
+    image_files = [f for f in os.listdir(img_dir) if f.lower().endswith(".png")]
+    # Prepare list of (id_or_None, fullpath)
+    image_catalogue = [(_extract_id_from_filename(fn), os.path.join(img_dir, fn)) for fn in image_files]
+    for tid, fpath in image_catalogue:
+        if tid:
+            tiles.append(WS(tid, fpath))
+    _build_compatibility(tiles)
+    return tiles
+
+
+def _build_compatibility(tiles):
+    # Precompute, for each tile, the list of compatible neighbor ids by direction (0:N,1:E,2:S,3:W)
+    def corners_match(a, b, dir_index):
+        # Corner indices: 0=NW, 1=NE, 2=SE, 3=SW
+        pairs_by_dir = {
+            0: [(0, 3), (1, 2)],  # North neighbor
+            1: [(1, 0), (2, 3)],  # East neighbor
+            2: [(3, 0), (2, 1)],  # South neighbor
+            3: [(0, 1), (3, 2)],  # West neighbor
+        }
+        for sc, nc in pairs_by_dir[dir_index]:
+            sc_col = a.corners.get(sc)
+            nc_col = b.corners.get(nc)
+            if sc_col is None or nc_col is None:
+                # Permissive if missing data
+                continue
+            if tuple(sc_col[:3]) != tuple(nc_col[:3]):
+                return False
+        return True
+
+    for t in tiles:
+        t.compat = {0: [], 1: [], 2: [], 3: []}
+    for a in tiles:
+        for b in tiles:
+            for d in (0, 1, 2, 3):
+                if corners_match(a, b, d):
+                    a.compat[d].append(b.id)
 
 
 class WaveFunctionCollapse:
@@ -46,9 +77,10 @@ class WaveFunctionCollapse:
 
     def setup_world_elements(self):
         self.world_elements = []
+        elements = _load_tiles_from_images(os.path.dirname(__file__))
         for y in range(self.world_size):
             for x in range(self.world_size):
-                we = WE(self.screen, ELEMENTS, x, y)
+                we = WE(self.screen, elements, x, y)
                 self.world_elements.append(we)
 
     def set_world_element_neighbours(self):
@@ -69,11 +101,11 @@ class WaveFunctionCollapse:
             we.set_neighbours([north, east, south, west])
 
     def auto_collapse(self):
-        if self.auto_collapse_active != True:
+        if not self.auto_collapse_active:
             return
         current_time = pygame.time.get_ticks()
         if current_time - self.last_time >= self.auto_collapse_wait:
-            last_time = current_time
+            self.last_time = current_time
             next = self.world_elements.index(min(self.world_elements, key=attrgetter('entropy')))
             self.world_elements[next].collapse()  
  
